@@ -203,7 +203,7 @@ doorkeeper.
     option :native_redirect_uri,            default: 'urn:ietf:wg:oauth:2.0:oob'
     option :active_record_options,          default: {}
     option :grant_flows,                    default: %w[authorization_code client_credentials]
-
+    option :refresh_token_revoke_in,   default: 0
     # Allows to forbid specific Application redirect URI's by custom rules.
     # Doesn't forbid any URI by default.
     #
