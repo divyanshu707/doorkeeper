@@ -50,7 +50,9 @@ module Doorkeeper
       end
 
       def create_access_token
-        @access_token = AccessToken.create!(access_token_attributes)
+        @access_token = AccessToken.new(access_token_attributes)
+        @access_token.save!
+        @access_token.refresh_token ||= get_latest_of_prev_access_tokens.refresh_token
       end
 
       def access_token_attributes
@@ -59,12 +61,21 @@ module Doorkeeper
           resource_owner_id: refresh_token.resource_owner_id,
           scopes: scopes.to_s,
           expires_in: access_token_expires_in,
-          use_refresh_token: true
+          use_refresh_token: use_refresh_token?
         }.tap do |attributes|
           if refresh_token_revoked_on_use?
             attributes[:previous_refresh_token] = refresh_token.refresh_token
           end
         end
+      end
+
+      def use_refresh_token?
+        @prev_access_tokens ||= AccessToken.where(previous_refresh_token: refresh_token.refresh_token)
+        @prev_access_tokens.count == 0
+      end
+
+      def get_latest_of_prev_access_tokens
+        @prev_access_tokens.find{|token| token.refresh_token.present?}
       end
 
       def access_token_expires_in
