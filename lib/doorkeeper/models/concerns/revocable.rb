@@ -11,11 +11,15 @@ module Doorkeeper
 
       def revoke_previous_refresh_token!
         return unless refresh_token_revoked_on_use?
-        old_refresh_token.revoke if old_refresh_token
+        old_refresh_token.revoke_in(Doorkeeper.configuration.refresh_token_revoke_in) if old_refresh_token
         update_attribute :previous_refresh_token, ""
       end
 
       private
+
+      def revoke_in(time)
+        update_attribute :revoked_at, Time.now.utc + time
+      end
 
       def old_refresh_token
         @old_refresh_token ||=
